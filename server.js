@@ -11,11 +11,10 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-// Configuration
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 
-// --- MONGODB CONNECTION ---
+// --- DATABASE ---
 mongoose.connect(MONGO_URI)
     .then(() => console.log("✅ Laze Database: Connected to Atlas"))
     .catch(err => console.error("❌ Database Error:", err));
@@ -27,9 +26,13 @@ const User = mongoose.model('User', new mongoose.Schema({
     lastClaim: { type: String, default: null }
 }));
 
-// --- WHATSAPP ENGINE ---
+// --- ENGINE LOGIC ---
+const activeSessions = new Set(); // Track live bots for the monitor
+
 async function startLazeInstance(num) {
-    const { state, saveCreds } = await useMultiFileAuthState(`./sessions/${num}`);
+    const sessionPath = `./sessions/${num}`;
+    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+    
     const conn = makeWASocket({
         auth: state,
         logger: pino({ level: 'silent' }),
@@ -39,23 +42,43 @@ async function startLazeInstance(num) {
 
     conn.ev.on('creds.update', saveCreds);
     
+    conn.ev.on('connection.update', (update) => {
+        const { connection } = update;
+        if (connection === 'open') {
+            console.log(`[LAZE] Session Active: ${num}`);
+            activeSessions.add(num);
+        } else if (connection === 'close') {
+            activeSessions.delete(num);
+        }
+    });
+
     conn.ev.on('messages.upsert', async (chatUpdate) => {
         try {
             let mek = chatUpdate.messages[0];
             if (!mek.message || mek.key.remoteJid === 'status@broadcast') return;
             const m = smsg(conn, mek); 
-            // This runs your command logic from anime.js
             require("./anime.js")(conn, m, chatUpdate);
         } catch (e) { console.error("Message Error:", e); }
     });
-
-    conn.ev.on('connection.update', (update) => {
-        const { connection } = update;
-        if (connection === 'open') console.log(`[LAZE] Session Active: ${num}`);
-    });
 }
 
-// --- WEB API ---
+// --- API ENDPOINTS ---
+
+// Monitor API
+app.get('/api/monitor', (req, res) => {
+    res.json({
+        status: "Online",
+        memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + "MB",
+        uptime: Math.round(process.uptime()) + "s",
+        activeBots: activeSessions.size,
+        database: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected"
+    });
+});
+
+// Get Linked Numbers for Settings Page
+app.get('/api/linked-numbers', (req, res) => {
+    res.json({ numbers: Array.from(activeSessions) });
+});
 
 app.post('/api/auth', async (req, res) => {
     const { user, pass } = req.body;
@@ -102,10 +125,7 @@ app.post('/api/get-pair', async (req, res) => {
     } catch (e) { res.status(500).json({ error: "Pairing Error" }); }
 });
 
-// --- RENDER KEEP-ALIVE ---
-app.get('/ping', (req, res) => res.send("Engine Awake"));
-
-// --- AUTO-BOOT ---
+// Boot active sessions on start
 if (fs.existsSync('./sessions')) {
     fs.readdirSync('./sessions').forEach(folder => {
         if (fs.existsSync(path.join('./sessions', folder, 'creds.json'))) {
