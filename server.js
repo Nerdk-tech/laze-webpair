@@ -48,8 +48,11 @@ async function startLazeInstance(num) {
         const conn = makeWASocket({
             auth: state,
             logger: pino({ level: 'silent' }),
-            browser: Browsers.ubuntu('Chrome'), 
-            printQRInTerminal: false
+            // FIXED HERE
+            browser: ["Ubuntu", "Chrome", "20.0.04"], 
+            printQRInTerminal: false,
+            connectTimeoutMs: 60000,
+            keepAliveIntervalMs: 10000
         });
 
         conn.ev.on('creds.update', saveCreds);
@@ -74,11 +77,11 @@ async function startLazeInstance(num) {
     } catch (e) { logToBuffer(`❌ Failed to start ${num}: ${e.message}`); }
 }
 
+// --- APIs ---
 app.get('/api/logs', (req, res) => res.json({ logs: serverLogs }));
 app.get('/api/monitor', (req, res) => res.json({ status: "Online", activeBots: activeSessions.size }));
 
 app.get('/api/linked-numbers', (req, res) => {
-    // Also include numbers that have folders but aren't "active" in RAM
     const folders = fs.readdirSync(sessionsDir);
     res.json({ numbers: Array.from(new Set([...activeSessions, ...folders])) });
 });
@@ -127,14 +130,16 @@ app.post('/api/get-pair', async (req, res) => {
         if (!dbUser || dbUser.coins < 10) return res.status(403).json({ error: "Need 10 coins" });
 
         const sessionPath = path.join(sessionsDir, number);
-        await fs.remove(sessionPath); // Clean start
-        await fs.ensureDir(sessionPath); // Force folder creation
+        await fs.remove(sessionPath);
+        await fs.ensureDir(sessionPath); 
 
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
         const sock = makeWASocket({
             auth: state,
             logger: pino({ level: 'silent' }),
-            browser: Browsers.ubuntu('Chrome')
+            // FIXED HERE AS WELL
+            browser: ["Ubuntu", "Chrome", "20.0.04"],
+            connectTimeoutMs: 60000
         });
 
         await delay(5000);
@@ -153,6 +158,9 @@ app.post('/api/get-pair', async (req, res) => {
     }
 });
 
-// Boot
-fs.readdirSync(sessionsDir).forEach(f => startLazeInstance(f));
+// Boot existing
+if (fs.existsSync(sessionsDir)) {
+    fs.readdirSync(sessionsDir).forEach(f => startLazeInstance(f));
+}
+
 app.listen(PORT, () => logToBuffer(`♛ LAZE ON PORT ${PORT}`));
