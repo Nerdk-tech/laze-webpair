@@ -3,156 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings | Laze Engine</title>
+    <title>Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg: #0b0d11; --card: #151821; --text: #ffffff;
-            --accent: #00a3ff; --border: #252833; --dim: #9499aa;
-        }
-        [data-theme="light"] {
-            --bg: #f0f2f5; --card: #ffffff; --text: #1a1a1a;
-            --accent: #007aff; --border: #e4e6eb; --dim: #65676b;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.3s ease; }
-        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-
-        /* Sidebar Navigation */
-        .side-nav {
-            width: 70px; background: var(--card); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; align-items: center; padding: 30px 0;
-        }
+        :root { --bg: #0b0d11; --card: #151821; --text: #ffffff; --accent: #00a3ff; --border: #252833; --dim: #9499aa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; }
+        .side-nav { width: 70px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 30px 0; }
         .nav-btn { font-size: 1.5rem; color: var(--dim); margin-bottom: 35px; cursor: pointer; }
         .nav-btn.active { color: var(--accent); }
-
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; padding: 40px; align-items: center; overflow-y: auto; }
-        
-        .settings-container { width: 100%; max-width: 500px; }
-        
-        .header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; cursor: pointer; }
-        .header-row h2 { font-size: 1.5rem; }
-
-        /* Settings List Styling */
-        .settings-list {
-            background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden;
-        }
-        .settings-item {
-            display: flex; align-items: center; padding: 22px; border-bottom: 1px solid var(--border);
-            cursor: pointer; transition: 0.2s;
-        }
-        .settings-item:last-child { border: none; }
-        .settings-item:hover { background: rgba(255,255,255,0.03); }
-        .settings-item i { width: 45px; font-size: 1.3rem; color: var(--accent); }
-        
-        .info h4 { font-size: 1rem; margin-bottom: 2px; }
-        .info p { font-size: 0.85rem; color: var(--dim); }
-        .chevron { margin-left: auto; color: #333; font-size: 0.8rem; }
-
-        .theme-btn {
-            margin-top: 30px; background: none; border: 1px solid var(--border);
-            color: var(--dim); padding: 10px 20px; border-radius: 10px; cursor: pointer;
-        }
+        .main { flex: 1; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+        .settings-card { width: 100%; max-width: 500px; background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .item { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .item i { width: 45px; font-size: 1.3rem; color: var(--accent); }
+        .info h4 { font-size: 1rem; }
+        .info p { font-size: 0.8rem; color: var(--dim); }
     </style>
 </head>
 <body>
-
     <nav class="side-nav">
         <div class="nav-btn" onclick="location.href='index.html'"><i class="fas fa-home"></i></div>
         <div class="nav-btn active"><i class="fas fa-cog"></i></div>
     </nav>
-
-    <div class="main-wrapper">
-        <div class="settings-container">
-            <div class="header-row" onclick="location.href='index.html'">
-                <i class="fas fa-arrow-left"></i>
-                <h2>Settings</h2>
-            </div>
-
-            <div class="settings-list">
-                <div class="settings-item">
-                    <i class="fas fa-user-circle"></i>
-                    <div class="info">
-                        <h4>Account Settings</h4>
-                        <p id="linked-num">Linked: Checking...</p>
-                    </div>
-                    <i class="fas fa-chevron-right chevron"></i>
-                </div>
-
-                <div class="settings-item" onclick="claimDaily()">
-                    <i class="fas fa-coins"></i>
-                    <div class="info">
-                        <h4>Claim Coins</h4>
-                        <p>Get your daily 100 coins</p>
-                    </div>
-                    <i class="fas fa-chevron-right chevron"></i>
-                </div>
-
-                <div class="settings-item">
-                    <i class="fas fa-shield-alt"></i>
-                    <div class="info">
-                        <h4>Bot Monitor</h4>
-                        <p id="mon-status">Status: Fetching...</p>
-                    </div>
-                    <i class="fas fa-chevron-right chevron"></i>
-                </div>
-
-                <div class="settings-item" onclick="window.open('https://wa.me/2348054671458')">
-                    <i class="fab fa-whatsapp"></i>
-                    <div class="info">
-                        <h4>Contact Support</h4>
-                        <p>Chat with developer</p>
-                    </div>
-                    <i class="fas fa-chevron-right chevron"></i>
-                </div>
-            </div>
-
-            <button class="theme-btn" onclick="toggleTheme()">
-                <i class="fas fa-moon"></i> Toggle Theme
-            </button>
+    <div class="main">
+        <h2 style="margin-bottom:20px; width:100%; max-width:500px;">Settings</h2>
+        <div class="settings-card">
+            <div class="item"><i class="fas fa-coins"></i><div class="info"><h4>Balance</h4><p id="set-coins">Loading...</p></div></div>
+            <div class="item" onclick="claim()"><i class="fas fa-gift"></i><div class="info"><h4>Claim Daily</h4><p>Get 100 coins</p></div></div>
+            <div class="item"><i class="fas fa-shield-alt"></i><div class="info"><h4>Monitor</h4><p id="mon">Checking...</p></div></div>
         </div>
     </div>
-
     <script>
-        // Run on load
-        window.onload = () => {
-            fetchSettingsData();
-        };
-
-        async function fetchSettingsData() {
-            try {
-                // Get Monitor Data
-                const monRes = await fetch('/api/monitor');
-                const monData = await monRes.json();
-                document.getElementById('mon-status').innerText = `Status: ${monData.status} | Bots: ${monData.activeBots}`;
-
-                // Get Linked Numbers
-                const linkRes = await fetch('/api/linked-numbers');
-                const linkData = await linkRes.json();
-                document.getElementById('linked-num').innerText = `Linked: ${linkData.numbers.length > 0 ? linkData.numbers[0] : 'None'}`;
-            } catch (e) {
-                console.log("Offline mode: Connect to server.js for live data");
-                document.getElementById('mon-status').innerText = "Status: Offline";
-            }
+        async function load() {
+            const auth = await fetch('/api/auth', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user: "Lazebot", pass: "1234" })}).then(r => r.json());
+            document.getElementById('set-coins').innerText = auth.coins + " Coins";
+            const mon = await fetch('/api/monitor').then(r => r.json());
+            document.getElementById('mon').innerText = "Status: " + mon.status;
         }
-
-        async function claimDaily() {
-            const res = await fetch('/api/claim', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user: "Lazebot" }) 
-            });
+        async function claim() {
+            const res = await fetch('/api/claim', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user: "Lazebot" })});
             const data = await res.json();
-            alert(data.message || data.error || "Claimed!");
+            if(data.coins) {
+                alert(data.message);
+                document.getElementById('set-coins').innerText = data.coins + " Coins";
+            } else { alert(data.error); }
         }
-
-        function toggleTheme() {
-            if (document.body.hasAttribute('data-theme')) {
-                document.body.removeAttribute('data-theme');
-            } else {
-                document.body.setAttribute('data-theme', 'light');
-            }
-        }
+        window.onload = load;
     </script>
 </body>
 </html>
