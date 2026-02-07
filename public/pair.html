@@ -2,95 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Laze | Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laze Engine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0b0d11; --card: #151821; --text: #ffffff;
+            --accent: #00a3ff; --border: #252833; --dim: #9499aa;
+        }
+        [data-theme="light"] {
+            --bg: #f0f2f5; --card: #ffffff; --text: #1a1a1a;
+            --accent: #007aff; --border: #e4e6eb; --dim: #65676b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.3s ease; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar Navigation */
+        .side-nav {
+            width: 70px; background: var(--card); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; padding: 30px 0; z-index: 100;
+        }
+        .nav-btn { font-size: 1.5rem; color: var(--dim); margin-bottom: 35px; cursor: pointer; }
+        .nav-btn.active { color: var(--accent); }
+
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; }
+        
+        header { padding: 20px 40px; display: flex; justify-content: flex-end; align-items: center; }
+        .coin-pill {
+            background: var(--card); padding: 8px 16px; border-radius: 20px;
+            border: 1px solid var(--border); font-weight: bold; font-size: 0.9rem;
+        }
+
+        .view-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+
+        /* Pairing View Style */
+        .hero { text-align: center; max-width: 400px; width: 100%; }
+        .hero i { font-size: 4rem; color: var(--border); margin-bottom: 20px; display: block; }
+        .btn-link {
+            background: var(--accent); color: white; border: none; padding: 16px;
+            border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; font-size: 1rem;
+        }
+        input {
+            width: 100%; padding: 16px; background: var(--card); border: 1px solid var(--border);
+            color: var(--text); border-radius: 12px; margin-top: 15px; text-align: center; outline: none; font-size: 1.1rem;
+        }
+        #pair-code { margin-top: 25px; font-size: 2.2rem; color: var(--accent); font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 10px rgba(0, 163, 255, 0.3); }
+
+        .theme-toggle { margin-top: auto; color: var(--dim); cursor: pointer; padding: 20px 0; }
+    </style>
 </head>
 <body>
-    <nav>
-        <span>Laze Engine</span>
-        <span>🪙 <b id="c">0</b></span>
+
+    <nav class="side-nav">
+        <div class="nav-btn active"><i class="fas fa-home"></i></div>
+        <div class="nav-btn" onclick="location.href='settings.html'"><i class="fas fa-cog"></i></div>
+        <div class="theme-toggle" onclick="toggleTheme()"><i id="t-icon" class="fas fa-moon"></i></div>
     </nav>
-    
-    <div class="glass" id="p-card">
-        <h2>Pairing</h2>
-        <p>Enter your WhatsApp number</p>
-        <input type="number" id="num" placeholder="23480...">
-        <button class="btn" onclick="pair()">Generate Code</button>
-        <div id="res" style="display:none;"></div>
-        <button class="btn btn-alt" onclick="toggle(1)">Settings</button>
-    </div>
 
-    <div class="glass" id="s-card" style="display:none;">
-        <h2>Settings</h2>
-        <div style="text-align: left; margin-bottom: 20px;">
-            <small style="color:var(--text-dim)">ACCOUNT</small>
-            <div id="u-info" style="font-weight: bold; margin-top: 5px;">User: ...</div>
+    <div class="main-wrapper">
+        <header>
+            <div class="coin-pill">🪙 <span id="user-coins">...</span></div>
+        </header>
+
+        <div class="view-container">
+            <div id="home-view" class="hero">
+                <div id="pairing-content">
+                    <i class="fas fa-qrcode"></i>
+                    <h2 style="margin-bottom: 10px;">Laze Connection</h2>
+                    <p style="color: var(--dim); font-size: 0.9rem;">Link your WhatsApp number to start the bot instance.</p>
+                    <button class="btn-link" style="margin-top:25px;" onclick="renderInput()">Link Device</button>
+                </div>
+            </div>
         </div>
-
-        <button class="btn" onclick="claim()">🎁 Claim Daily 100 Coins</button>
-        <button class="btn btn-alt" onclick="toggleTheme()">🌓 Toggle Dark/Light</button>
-        <button class="btn btn-alt" onclick="toggle(0)">Back to Dashboard</button>
-        
-        <button class="btn" style="background:#ef4444; margin-top:15px;" onclick="logout()">Logout</button>
     </div>
 
     <script>
-        let s = JSON.parse(localStorage.getItem('lz_sess'));
-        if(!s) location.href='index.html';
-        
-        // Initial UI Load
-        document.getElementById('c').innerText = s.coins;
-        document.getElementById('u-info').innerText = "User: " + s.user;
+        // Initialize Coin Balance on load
+        window.onload = async () => {
+            try {
+                // Heartbeat to check server + fetch initial balance
+                const res = await fetch('/api/monitor');
+                const data = await res.json();
+                // Replace with actual logic to fetch user coins if database is ready
+                document.getElementById('user-coins').innerText = "100+"; 
+            } catch(e) {
+                document.getElementById('user-coins').innerText = "0";
+            }
+        };
 
-        function toggle(show) {
-            document.getElementById('p-card').style.display = show ? 'none' : 'block';
-            document.getElementById('s-card').style.display = show ? 'block' : 'none';
+        // Transforms the hero UI into an input form
+        function renderInput() {
+            document.getElementById('pairing-content').innerHTML = `
+                <h3 style="margin-bottom: 5px;">Enter Phone Number</h3>
+                <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 15px;">Include country code (e.g. 234...)</p>
+                <input type="text" id="phoneNum" placeholder="2348054671458">
+                <button class="btn-link" style="margin-top:15px" onclick="startPair()">Get Pairing Code</button>
+                <div id="pair-code"></div>
+            `;
+        }
+
+        // Communicates with server.js to get the Baileys pairing code
+        async function startPair() {
+            const num = document.getElementById('phoneNum').value;
+            const codeBox = document.getElementById('pair-code');
+            
+            if(!num) return alert("Please enter a number");
+            codeBox.innerText = "GENERATING...";
+
+            try {
+                const res = await fetch('/api/get-pair', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ number: num, user: "Lazebot" })
+                });
+                const data = await res.json();
+                
+                if(data.code) {
+                    codeBox.innerText = data.code;
+                    if(data.coins) document.getElementById('user-coins').innerText = data.coins;
+                } else {
+                    codeBox.innerText = "ERROR";
+                    alert(data.error || "Pairing failed");
+                }
+            } catch(e) {
+                codeBox.innerText = "OFFLINE";
+            }
         }
 
         function toggleTheme() {
-            const current = document.body.getAttribute('data-theme');
-            const target = current === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
+            const body = document.body;
+            const icon = document.getElementById('t-icon');
+            if(body.hasAttribute('data-theme')) {
+                body.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+            }
         }
-
-        // Apply saved theme on load
-        if(localStorage.getItem('theme')) document.body.setAttribute('data-theme', localStorage.getItem('theme'));
-
-        async function pair() {
-            const number = document.getElementById('num').value;
-            if(!number) return alert("Enter number");
-            const res = await fetch('/api/get-pair', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ number, user: s.user }) 
-            });
-            const data = await res.json();
-            if(res.ok) { 
-                document.getElementById('res').innerText = data.code; 
-                document.getElementById('res').style.display='block'; 
-                update(data.coins); 
-            } else alert(data.error);
-        }
-
-        async function claim() {
-            const res = await fetch('/api/claim', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ user: s.user }) 
-            });
-            const data = await res.json();
-            if(res.ok) { update(data.coins); alert("100 Coins Added!"); } 
-            else alert(data.error);
-        }
-
-        function update(c) { 
-            s.coins = c; 
-            localStorage.setItem('lz_sess', JSON.stringify(s)); 
-            document.getElementById('c').innerText = c; 
-        }
-
-        function logout() { localStorage.clear(); location.href='index.html'; }
     </script>
 </body>
 </html>
