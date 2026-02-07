@@ -3,129 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laze Dashboard</title>
+    <title>Laze Dashboard | Settings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg: #0b0d11; --card: #151821; --text: #ffffff; --accent: #00a3ff; --border: #252833; --dim: #9499aa; --terminal: #000000; }
-        [data-theme="light"] { --bg: #f0f2f5; --card: #ffffff; --text: #1a1a1a; --accent: #007aff; --border: #e4e6eb; --dim: #65676b; --terminal: #1e1e1e; }
+        :root { 
+            --bg: #0b0d11; --card: #151821; --text: #ffffff; 
+            --accent: #00a3ff; --border: #252833; --dim: #9499aa; 
+            --terminal: #000000; --row-bg: rgba(255,255,255,0.05);
+        }
+        [data-theme="light"] { 
+            --bg: #f0f2f5; --card: #ffffff; --text: #1a1a1a; 
+            --accent: #007aff; --border: #e4e6eb; --dim: #65676b; 
+            --terminal: #1e1e1e; --row-bg: rgba(0,0,0,0.05);
+        }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.3s ease; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: background 0.3s, color 0.3s, border 0.3s; }
         body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        .side-nav { width: 70px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 30px 0; }
-        .nav-btn { font-size: 1.5rem; color: var(--dim); margin-bottom: 35px; cursor: pointer; }
-        .nav-btn.active { color: var(--accent); }
-        .theme-toggle { margin-top: auto; color: var(--dim); cursor: pointer; font-size: 1.2rem; padding: 20px 0; }
+        /* Sidebar */
+        .side-nav { width: 75px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 30px 0; z-index: 10; }
+        .nav-btn { font-size: 1.4rem; color: var(--dim); margin-bottom: 35px; cursor: pointer; transition: 0.2s; }
+        .nav-btn:hover, .nav-btn.active { color: var(--accent); }
+        .theme-toggle { margin-top: auto; color: var(--dim); cursor: pointer; font-size: 1.3rem; padding: 20px; transition: transform 0.4s; }
+        .theme-toggle:hover { transform: rotate(30deg); color: var(--accent); }
 
+        /* Main Content */
         .main { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .settings-card { width: 100%; max-width: 600px; background: var(--card); border-radius: 18px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 25px; }
-        .item { display: flex; align-items: center; padding: 18px 25px; border-bottom: 1px solid var(--border); cursor: pointer; }
-        .item:hover { background: rgba(255,255,255,0.03); }
-        .item i { width: 45px; font-size: 1.3rem; color: var(--accent); }
-        .info h4 { font-size: 1rem; margin-bottom: 2px; }
+        .container { width: 100%; max-width: 650px; }
+        h2 { margin-bottom: 25px; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* Cards */
+        .settings-card { background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .item { display: flex; align-items: center; padding: 20px 25px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .item:last-child { border-bottom: none; }
+        .item:hover { background: rgba(0,163,255,0.05); }
+        .item i { width: 45px; font-size: 1.4rem; color: var(--accent); }
+        .info h4 { font-size: 1rem; margin-bottom: 3px; }
         .info p { font-size: 0.85rem; color: var(--dim); }
 
-        .log-container { width: 100%; max-width: 600px; background: var(--terminal); border-radius: 12px; padding: 15px; border: 1px solid var(--border); position: relative; }
-        .log-box { height: 200px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 0.8rem; color: #00ff00; line-height: 1.5; }
+        /* Session List */
+        .section-label { padding: 20px 25px 10px; font-size: 0.75rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .session-list { padding: 0 15px 15px; }
+        .session-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--row-bg); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
+        .session-row span { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; }
+        .session-row span i { color: #25d366; margin-right: 12px; font-size: 1.1rem; }
+        .del-btn { color: #ff4b4b; cursor: pointer; font-size: 1.1rem; padding: 5px; opacity: 0.7; transition: 0.2s; }
+        .del-btn:hover { opacity: 1; transform: scale(1.1); }
+
+        /* Logs */
+        .log-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px; }
+        .log-container { background: var(--terminal); border-radius: 15px; padding: 20px; border: 1px solid var(--border); box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .log-box { height: 220px; overflow-y: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.8rem; color: #00ff00; line-height: 1.6; scroll-behavior: smooth; }
         
-        .session-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: rgba(0,0,0,0.1); border-radius: 10px; margin: 10px 20px; border: 1px solid var(--border); }
-        .del-btn { color: #ff4b4b; cursor: pointer; font-size: 1.1rem; }
+        /* Custom Scrollbar */
+        .log-box::-webkit-scrollbar { width: 6px; }
+        .log-box::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body>
     <nav class="side-nav">
         <div class="nav-btn" onclick="location.href='index.html'"><i class="fas fa-home"></i></div>
-        <div class="nav-btn active"><i class="fas fa-cog"></i></div>
+        <div class="nav-btn active"><i class="fas fa-sliders-h"></i></div>
         <div class="theme-toggle" onclick="toggleTheme()"><i id="t-icon" class="fas fa-moon"></i></div>
     </nav>
 
     <div class="main">
-        <h2 style="margin-bottom:25px; width:100%; max-width:600px;">System Settings</h2>
-        
-        <div class="settings-card">
-            <div class="item">
-                <i class="fas fa-wallet"></i>
-                <div class="info"><h4>Balance</h4><p id="coins">Loading balance...</p></div>
-            </div>
-            <div class="item" onclick="claimCoins()">
-                <i class="fas fa-calendar-check"></i>
-                <div class="info"><h4>Daily Claim</h4><p>Collect your 100 free coins</p></div>
-            </div>
+        <div class="container">
+            <h2>Settings</h2>
             
-            <div style="padding: 15px 25px; font-size: 0.85rem; color: var(--accent); font-weight: 700;">ACTIVE BOT SESSIONS</div>
-            <div id="session-list"></div>
+            <div class="settings-card">
+                <div class="item">
+                    <i class="fas fa-coins"></i>
+                    <div class="info"><h4>Balance</h4><p id="coins">Loading...</p></div>
+                </div>
+                <div class="item" onclick="claimCoins()">
+                    <i class="fas fa-gift"></i>
+                    <div class="info"><h4>Daily Bonus</h4><p>Claim your 100 free daily coins</p></div>
+                </div>
+                
+                <div class="section-label">Active Bot Instances</div>
+                <div id="session-list" class="session-list">
+                    <p style="padding: 10px 15px; color: var(--dim); font-size: 0.85rem;">Checking for active sessions...</p>
+                </div>
 
-            <div class="item">
-                <i class="fas fa-microchip"></i>
-                <div class="info"><h4>Engine Monitor</h4><p id="status">Checking system...</p></div>
+                <div class="item">
+                    <i class="fas fa-server"></i>
+                    <div class="info"><h4>System Status</h4><p id="status">Syncing with engine...</p></div>
+                </div>
             </div>
-        </div>
 
-        <h3 style="width:100%; max-width:600px; margin-bottom: 10px; font-size: 0.9rem; color: var(--dim);">LIVE SERVER LOGS</h3>
-        <div class="log-container">
-            <div class="log-box" id="logs">Connecting to stream...</div>
+            <div class="log-header">
+                <h3 style="font-size: 0.9rem; color: var(--dim); font-weight: 600;">LIVE ENGINE LOGS</h3>
+                <i class="fas fa-sync-alt" style="font-size: 0.8rem; color: var(--dim); cursor: pointer;" onclick="fetchLogs()"></i>
+            </div>
+            <div class="log-container">
+                <div class="log-box" id="logs">Initialising log stream...</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Init
+        // Start Up
         window.onload = () => {
-            if(localStorage.getItem('theme') === 'light') toggleTheme(true);
+            if(localStorage.getItem('laze-theme') === 'light') toggleTheme(true);
             refreshUI();
-            setInterval(fetchLogs, 4000); 
+            setInterval(fetchLogs, 3000); // Auto refresh logs every 3s
+            setInterval(refreshUI, 10000); // Sync UI every 10s
         };
 
         async function refreshUI() {
             try {
+                // Fetch User Data
                 const auth = await fetch('/api/auth', { 
                     method: 'POST', 
                     headers: {'Content-Type': 'application/json'}, 
                     body: JSON.stringify({ user: "Lazebot", pass: "1234" }) 
                 }).then(r => r.json());
-                document.getElementById('coins').innerText = auth.coins + " Laze Coins";
+                document.getElementById('coins').innerText = (auth.coins || 0) + " Laze Coins";
 
+                // Fetch System Stats
                 const mon = await fetch('/api/monitor').then(r => r.json());
-                document.getElementById('status').innerText = `Status: ${mon.status} | Active Bots: ${mon.activeBots}`;
+                document.getElementById('status').innerText = `Engine: ${mon.status} | Active: ${mon.activeBots || 0}`;
 
+                // Fetch Sessions (Ghost folders + Active RAM)
                 const sessions = await fetch('/api/linked-numbers').then(r => r.json());
                 const list = document.getElementById('session-list');
-                list.innerHTML = sessions.numbers.length ? sessions.numbers.map(n => `
-                    <div class="session-row">
-                        <span><i class="fab fa-whatsapp" style="color:#25d366; margin-right:10px;"></i>+${n}</span>
-                        <i class="fas fa-trash-alt del-btn" onclick="terminate('${n}')"></i>
-                    </div>
-                `).join('') : '<p style="padding:20px; font-size:0.8rem; color:var(--dim);">No bots currently linked.</p>';
                 
-                fetchLogs();
-            } catch (e) { console.error("Update failed"); }
+                if (sessions.numbers && sessions.numbers.length > 0) {
+                    list.innerHTML = sessions.numbers.map(n => `
+                        <div class="session-row">
+                            <span><i class="fab fa-whatsapp"></i>+${n}</span>
+                            <i class="fas fa-trash-alt del-btn" onclick="terminate('${n}')" title="Delete Session"></i>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="padding:10px 15px; font-size:0.85rem; color:var(--dim);">No linked devices found.</p>';
+                }
+            } catch (e) { console.error("Sync Error:", e); }
         }
 
         async function fetchLogs() {
-            const res = await fetch('/api/logs');
-            const data = await res.json();
-            const box = document.getElementById('logs');
-            box.innerHTML = data.logs.join('<br>');
-            box.scrollTop = box.scrollHeight;
+            try {
+                const res = await fetch('/api/logs');
+                const data = await res.json();
+                const box = document.getElementById('logs');
+                box.innerHTML = data.logs.length ? data.logs.join('<br>') : "Waiting for logs...";
+                box.scrollTop = box.scrollHeight;
+            } catch (e) { }
         }
 
         async function claimCoins() {
-            const res = await fetch('/api/claim', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ user: "Lazebot" }) 
-            }).then(r => r.json());
-            alert(res.message || res.error);
-            refreshUI();
+            try {
+                const res = await fetch('/api/claim', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ user: "Lazebot" }) 
+                }).then(r => r.json());
+                
+                if(res.error) alert(res.error);
+                else alert(res.message);
+                
+                refreshUI();
+            } catch (e) { alert("Server error"); }
         }
 
         async function terminate(num) {
-            if(!confirm(`Terminate session +${num}?`)) return;
-            await fetch('/api/delete-session', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ number: num }) 
-            });
-            refreshUI();
+            if(!confirm(`Warning: This will stop bot +${num} and delete all session data. Proceed?`)) return;
+            try {
+                await fetch('/api/delete-session', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ number: num }) 
+                });
+                refreshUI();
+            } catch (e) { alert("Failed to delete session."); }
         }
 
         function toggleTheme(init = false) {
@@ -136,11 +187,11 @@
             if (init || !isLight) {
                 b.setAttribute('data-theme', 'light');
                 i.className = 'fas fa-sun';
-                if(!init) localStorage.setItem('theme', 'light');
+                if(!init) localStorage.setItem('laze-theme', 'light');
             } else {
                 b.removeAttribute('data-theme');
                 i.className = 'fas fa-moon';
-                localStorage.setItem('theme', 'dark');
+                localStorage.setItem('laze-theme', 'dark');
             }
         }
     </script>
