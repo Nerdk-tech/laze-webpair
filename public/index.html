@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laze | Identity</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="dark"> <div class="glass">
+        <h1 style="font-size: 3rem; margin: 0; letter-spacing: -3px;">Laze.</h1>
+        <p style="margin-bottom: 2rem; opacity: 0.6;">Authentication Engine</p>
+        
+        <div style="text-align: left;">
+            <label style="font-size: 0.8rem; margin-left: 5px; opacity: 0.8;">USERNAME</label>
+            <input type="text" id="u" placeholder="e.g. Damini">
+            
+            <label style="font-size: 0.8rem; margin-left: 5px; opacity: 0.8;">PASSWORD</label>
+            <input type="password" id="p" placeholder="••••••••">
+        </div>
+
+        <button class="btn" id="auth-btn" onclick="auth()">Access Engine</button>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn btn-alt" style="font-size: 0.8rem;" onclick="toggleTheme()">🌓 Switch Theme</button>
+        </div>
+    </div>
+
+    <script>
+        // Theme Management
+        function applyTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+        }
+        
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            const target = current === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+        }
+
+        // Run theme check immediately
+        applyTheme();
+
+        // Auth Logic
+        async function auth() {
+            const user = document.getElementById('u').value.trim();
+            const pass = document.getElementById('p').value.trim();
+            const btn = document.getElementById('auth-btn');
+
+            if(!user || !pass) return alert("Fill all fields.");
+
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ user, pass }) 
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) { 
+                    localStorage.setItem('lz_sess', JSON.stringify(data)); 
+                    window.location.href = 'pair.html'; 
+                } else { 
+                    alert(data.error); 
+                    btn.innerText = "Access Engine";
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert("Server connection failed.");
+                btn.innerText = "Access Engine";
+                btn.disabled = false;
+            }
+        }
+
+        // Redirect if already logged in
+        if(localStorage.getItem('lz_sess')) {
+            window.location.href = 'pair.html';
+        }
+    </script>
+</body>
+</html>

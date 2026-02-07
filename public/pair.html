@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Laze | Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <span>Laze Engine</span>
+        <span>🪙 <b id="c">0</b></span>
+    </nav>
+    
+    <div class="glass" id="p-card">
+        <h2>Pairing</h2>
+        <p>Enter your WhatsApp number</p>
+        <input type="number" id="num" placeholder="23480...">
+        <button class="btn" onclick="pair()">Generate Code</button>
+        <div id="res" style="display:none;"></div>
+        <button class="btn btn-alt" onclick="toggle(1)">Settings</button>
+    </div>
+
+    <div class="glass" id="s-card" style="display:none;">
+        <h2>Settings</h2>
+        <div style="text-align: left; margin-bottom: 20px;">
+            <small style="color:var(--text-dim)">ACCOUNT</small>
+            <div id="u-info" style="font-weight: bold; margin-top: 5px;">User: ...</div>
+        </div>
+
+        <button class="btn" onclick="claim()">🎁 Claim Daily 100 Coins</button>
+        <button class="btn btn-alt" onclick="toggleTheme()">🌓 Toggle Dark/Light</button>
+        <button class="btn btn-alt" onclick="toggle(0)">Back to Dashboard</button>
+        
+        <button class="btn" style="background:#ef4444; margin-top:15px;" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        let s = JSON.parse(localStorage.getItem('lz_sess'));
+        if(!s) location.href='index.html';
+        
+        // Initial UI Load
+        document.getElementById('c').innerText = s.coins;
+        document.getElementById('u-info').innerText = "User: " + s.user;
+
+        function toggle(show) {
+            document.getElementById('p-card').style.display = show ? 'none' : 'block';
+            document.getElementById('s-card').style.display = show ? 'block' : 'none';
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            const target = current === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+        }
+
+        // Apply saved theme on load
+        if(localStorage.getItem('theme')) document.body.setAttribute('data-theme', localStorage.getItem('theme'));
+
+        async function pair() {
+            const number = document.getElementById('num').value;
+            if(!number) return alert("Enter number");
+            const res = await fetch('/api/get-pair', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ number, user: s.user }) 
+            });
+            const data = await res.json();
+            if(res.ok) { 
+                document.getElementById('res').innerText = data.code; 
+                document.getElementById('res').style.display='block'; 
+                update(data.coins); 
+            } else alert(data.error);
+        }
+
+        async function claim() {
+            const res = await fetch('/api/claim', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ user: s.user }) 
+            });
+            const data = await res.json();
+            if(res.ok) { update(data.coins); alert("100 Coins Added!"); } 
+            else alert(data.error);
+        }
+
+        function update(c) { 
+            s.coins = c; 
+            localStorage.setItem('lz_sess', JSON.stringify(s)); 
+            document.getElementById('c').innerText = c; 
+        }
+
+        function logout() { localStorage.clear(); location.href='index.html'; }
+    </script>
+</body>
+</html>
